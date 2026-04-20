@@ -16,81 +16,7 @@ import { useState, useCallback, useEffect } from "react";
 // In production, load from: await invoke("get_accounts")
 // Each account maps to a separate IMAP/SMTP channel on the Rust side.
 
-export const ACCOUNTS = [
-  {
-    id: "acc-1",
-    label: "Personal",
-    name: "Travis Martin",
-    email: "travis@mailflow.app",
-    provider: "imap",           // imap | gmail | outlook | exchange
-    color: "#007AFF",           // avatar ring color
-    avatarInitials: "TM",
-    signature: `<p>—<br/>Travis Martin<br/>MailFlow · InkFlow CRM</p>`,
-    // IMAP config (filled by user in settings, stored encrypted by Rust)
-    imap: {
-      host: "imap.mailflow.app",
-      port: 993,
-      tls: true,
-    },
-    smtp: {
-      host: "smtp.mailflow.app",
-      port: 587,
-      tls: true,
-    },
-    folders: [
-      { id: "inbox",   label: "Inbox",   icon: "✉️", system: true  },
-      { id: "sent",    label: "Sent",    icon: "↗️", system: true  },
-      { id: "drafts",  label: "Drafts",  icon: "📝", system: true  },
-      { id: "spam",    label: "Spam",    icon: "🚫", system: true  },
-      { id: "trash",   label: "Trash",   icon: "🗑️", system: true  },
-      { id: "archive", label: "Archive", icon: "📦", system: true  },
-    ],
-    storage: { used: 1.2, total: 15, unit: "GB" },
-    connected: true,
-  },
-  {
-    id: "acc-2",
-    label: "Dev",
-    name: "Travis",
-    email: "travis@dev.io",
-    provider: "gmail",
-    color: "#34C759",
-    avatarInitials: "TD",
-    signature: `<p>—<br/>Travis · dev.io</p>`,
-    imap: { host: "imap.gmail.com", port: 993, tls: true },
-    smtp: { host: "smtp.gmail.com", port: 587, tls: true },
-    folders: [
-      { id: "inbox",   label: "Inbox",   icon: "✉️", system: true },
-      { id: "sent",    label: "Sent",    icon: "↗️", system: true },
-      { id: "drafts",  label: "Drafts",  icon: "📝", system: true },
-      { id: "spam",    label: "Spam",    icon: "🚫", system: true },
-      { id: "trash",   label: "Trash",   icon: "🗑️", system: true },
-    ],
-    storage: { used: 4.8, total: 15, unit: "GB" },
-    connected: true,
-  },
-  {
-    id: "acc-3",
-    label: "Business",
-    name: "Travis Martin",
-    email: "travis@redtopscoopers.com",
-    provider: "imap",
-    color: "#FF9500",
-    avatarInitials: "RS",
-    signature: `<p>—<br/>Travis Martin<br/>RedTop Scoopers LLC · Cartersville, GA</p>`,
-    imap: { host: "mail.redtopscoopers.com", port: 993, tls: true },
-    smtp: { host: "mail.redtopscoopers.com", port: 587, tls: true },
-    folders: [
-      { id: "inbox",   label: "Inbox",   icon: "✉️", system: true },
-      { id: "sent",    label: "Sent",    icon: "↗️", system: true },
-      { id: "drafts",  label: "Drafts",  icon: "📝", system: true },
-      { id: "spam",    label: "Spam",    icon: "🚫", system: true },
-      { id: "trash",   label: "Trash",   icon: "🗑️", system: true },
-    ],
-    storage: { used: 0.3, total: 5, unit: "GB" },
-    connected: true,
-  },
-];
+export const ACCOUNTS = [];
 
 // Unified "All Inboxes" virtual account
 export const ALL_ACCOUNTS_ID = "all";
@@ -125,13 +51,13 @@ export const SMART_FOLDERS = [
 export function useAccounts() {
   // Persisted to localStorage so selection survives refresh
   const [activeAccountId, setActiveAccountId] = useState(() => {
-    try { return localStorage.getItem("mf_active_account") || "acc-1"; }
+    try { return localStorage.getItem("mf_active_account") || null; }
     catch { return "acc-1"; }
   });
 
   const [accounts, setAccounts] = useState(ACCOUNTS);
 
-  const activeAccount = accounts.find(a => a.id === activeAccountId) || accounts[0];
+  const activeAccount = accounts.find(a => a.id === activeAccountId) || null;
 
   const switchAccount = useCallback((id) => {
     setActiveAccountId(id);

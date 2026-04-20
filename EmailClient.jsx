@@ -1184,114 +1184,241 @@ import {
     const currentFolderLabel = activeFolder.charAt(0).toUpperCase()+activeFolder.slice(1);
   
     return (
-      // Fix #2 — root-level error boundary
       <ErrorBoundary name="MailFlow App">
         <ThemeCtx.Provider value={{ t, dark, accentId }}>
           <GlobalStyles />
-  
-          {/* Fix #6 — skip to main content */}
-          <SkipToMain t={t}/>
-  
-          <div className="t-trans" style={{
-            width:"100vw",height:"100vh",background:t.bg,
-            display:"flex",flexDirection:"column",overflow:"hidden",
-            fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
-          }}>
-  
-            {/* TOP BAR */}
-            <TopBar
-              onMenu={()=>setSidebarOpen(true)}
-              onCompose={()=>{setReplyTo(null);setComposing(true);}}
-              onSearch={handleSearch}
-              onToggleDark={toggleDark}
-              dark={dark}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              isMobile={isMobile}
-              showBack={isMobile&&mobileView==="preview"}
-              onBack={()=>setMobileView("list")}
-              backLabel={currentFolderLabel}
-              activeAccount={activeAccount}
-              onShowHelp={()=>setShowHelp(true)}
-            />
-  
-            {/* MAIN */}
-            <div style={{flex:1,display:"flex",overflow:"hidden",position:"relative"}}>
-  
-              {isDesktop
-                ?<Sidebar folders={activeAccount?.folders||[]} activeFolder={activeFolder}
-                    onSelect={handleFolderSelect} isMobile={false}
-                    accounts={accounts} activeAccountId={activeAccountId}
-                    switchAccount={switchAccount} onSettings={()=>setShowSettings(true)}
-                    unreadCounts={unreadCounts}/>
-                :sidebarOpen&&(
+          <SkipToMain t={t} />
+    
+          {/* ========================= */}
+          {/* MAIN SCREEN SWITCH */}
+          {/* ========================= */}
+          {!activeAccount ? (
+    
+            // =========================
+            // 👇 ONBOARDING SCREEN
+            // =========================
+            <div style={{
+              width: "100vw",
+              height: "100vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "column",
+              gap: 12,
+              background: t.bg,
+              color: t.text
+            }}>
+              <h2 style={{ fontSize: 40 }}>Welcome to MailFlow</h2>
+    
+              <p style={{ fontSize: 23, margin: 22,color: t.textMuted }}>
+                Connect your email to get started
+              </p>
+    
+              <button
+                onClick={() => setShowSettings(true)}
+                style={{
+                  padding: "10px 18px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: t.accent,
+                  color: "#fff",
+                  fontWeight: 600,
+                  cursor: "pointer"
+                }}
+              >
+                Connect Email
+              </button>
+            </div>
+    
+          ) : (
+    
+            // =========================
+            // 👇 FULL APP
+            // =========================
+            <div className="t-trans" style={{
+              width:"100vw",
+              height:"100vh",
+              background:t.bg,
+              display:"flex",
+              flexDirection:"column",
+              overflow:"hidden",
+              fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+            }}>
+    
+              {/* TOP BAR */}
+              <TopBar
+                onMenu={()=>setSidebarOpen(true)}
+                onCompose={()=>{setReplyTo(null);setComposing(true);}}
+                onSearch={handleSearch}
+                onToggleDark={toggleDark}
+                dark={dark}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                isMobile={isMobile}
+                showBack={isMobile&&mobileView==="preview"}
+                onBack={()=>setMobileView("list")}
+                backLabel={currentFolderLabel}
+                activeAccount={activeAccount}
+                onShowHelp={()=>setShowHelp(true)}
+              />
+    
+              {/* MAIN */}
+              <div style={{flex:1,display:"flex",overflow:"hidden",position:"relative"}}>
+    
+                {isDesktop
+                  ? <Sidebar
+                      folders={activeAccount?.folders||[]}
+                      activeFolder={activeFolder}
+                      onSelect={handleFolderSelect}
+                      isMobile={false}
+                      accounts={accounts}
+                      activeAccountId={activeAccountId}
+                      switchAccount={switchAccount}
+                      onSettings={()=>setShowSettings(true)}
+                      unreadCounts={unreadCounts}
+                    />
+                  : sidebarOpen && (
+                    <>
+                      <div
+                        onClick={()=>setSidebarOpen(false)}
+                        style={{
+                          position:"absolute",
+                          inset:0,
+                          zIndex:40,
+                          background:"rgba(0,0,0,0.35)"
+                        }}
+                      />
+                      <Sidebar
+                        folders={activeAccount?.folders||[]}
+                        activeFolder={activeFolder}
+                        onSelect={handleFolderSelect}
+                        onClose={()=>setSidebarOpen(false)}
+                        isMobile={true}
+                        accounts={accounts}
+                        activeAccountId={activeAccountId}
+                        switchAccount={switchAccount}
+                        onSettings={()=>{setShowSettings(true);setSidebarOpen(false);}}
+                        unreadCounts={unreadCounts}
+                      />
+                    </>
+                  )
+                }
+    
+                {(isDesktop||isTablet)&&(
                   <>
-                    <div onClick={()=>setSidebarOpen(false)} style={{position:"absolute",inset:0,zIndex:40,background:"rgba(0,0,0,0.35)",animation:"fadeIn .18s ease"}}/>
-                    <Sidebar folders={activeAccount?.folders||[]} activeFolder={activeFolder}
-                      onSelect={handleFolderSelect} onClose={()=>setSidebarOpen(false)} isMobile={true}
-                      accounts={accounts} activeAccountId={activeAccountId}
-                      switchAccount={switchAccount} onSettings={()=>{setShowSettings(true);setSidebarOpen(false);}}
-                      unreadCounts={unreadCounts}/>
-                  </>
-                )
-              }
-  
-              {/* THREE-PANE / TWO-PANE */}
-              {(isDesktop||isTablet)&&<>
-                <EmailList emails={store.emails} selected={store.selected}
-                  onSelect={handleSelect} loading={store.loading}
-                  hasError={store.hasError} error={store.error}
-                  activeFolder={activeFolder} isMobile={false} store={store}
-                  onShowFolderPicker={setFolderPicker}
-                  focusedIndex={focusedIndex}/>
-                <PreviewPane email={store.selected} store={store}
-                  onReply={()=>{setReplyTo(store.selected);setComposing(true);}}
-                  onForward={()=>{setReplyTo(null);setComposing(true);}}
-                  isMobile={false} onShowFolderPicker={setFolderPicker}/>
-              </>}
-  
-              {/* SINGLE-PANE (mobile) */}
-              {isMobile&&(
-                mobileView==="list"
-                  ?<EmailList emails={store.emails} selected={store.selected}
-                      onSelect={handleSelect} loading={store.loading}
-                      hasError={store.hasError} error={store.error}
-                      activeFolder={activeFolder} isMobile={true} store={store}
+                    <EmailList
+                      emails={store.emails}
+                      selected={store.selected}
+                      onSelect={handleSelect}
+                      loading={store.loading}
+                      hasError={store.hasError}
+                      error={store.error}
+                      activeFolder={activeFolder}
+                      isMobile={false}
+                      store={store}
                       onShowFolderPicker={setFolderPicker}
-                      focusedIndex={focusedIndex}/>
-                  :store.selected&&<PreviewPane email={store.selected} store={store}
+                      focusedIndex={focusedIndex}
+                    />
+    
+                    <PreviewPane
+                      email={store.selected}
+                      store={store}
                       onReply={()=>{setReplyTo(store.selected);setComposing(true);}}
                       onForward={()=>{setReplyTo(null);setComposing(true);}}
-                      onClose={()=>setMobileView("list")}
-                      isMobile={true} onShowFolderPicker={setFolderPicker}/>
+                      isMobile={false}
+                      onShowFolderPicker={setFolderPicker}
+                    />
+                  </>
+                )}
+    
+                {isMobile && (
+                  mobileView==="list"
+                    ? <EmailList
+                        emails={store.emails}
+                        selected={store.selected}
+                        onSelect={handleSelect}
+                        loading={store.loading}
+                        hasError={store.hasError}
+                        error={store.error}
+                        activeFolder={activeFolder}
+                        isMobile={true}
+                        store={store}
+                        onShowFolderPicker={setFolderPicker}
+                        focusedIndex={focusedIndex}
+                      />
+                    : store.selected && (
+                        <PreviewPane
+                          email={store.selected}
+                          store={store}
+                          onReply={()=>{setReplyTo(store.selected);setComposing(true);}}
+                          onForward={()=>{setReplyTo(null);setComposing(true);}}
+                          onClose={()=>setMobileView("list")}
+                          isMobile={true}
+                          onShowFolderPicker={setFolderPicker}
+                        />
+                      )
+                )}
+    
+              </div>
+    
+              {isMobile && <BottomNav activeFolder={activeFolder} onSelect={handleFolderSelect}/>}
+              {isDesktop && <StatusBar lastSync={store.lastSync} accountCount={accounts.length}/>}
+    
+              {composing && (
+                <ComposeModal
+                  onClose={()=>{setComposing(false);setReplyTo(null);}}
+                  replyTo={replyTo}
+                  isMobile={isMobile}
+                  store={store}
+                  activeAccount={activeAccount}
+                />
               )}
+    
             </div>
-  
-            {isMobile&&<BottomNav activeFolder={activeFolder} onSelect={handleFolderSelect}/>}
-            {isDesktop&&<StatusBar lastSync={store.lastSync} accountCount={accounts.length}/>}
-  
-            {composing&&<ComposeModal onClose={()=>{setComposing(false);setReplyTo(null);}} replyTo={replyTo} isMobile={isMobile} store={store} activeAccount={activeAccount}/>}
-  
-            {showSettings&&(
-              <FocusTrap onEscape={()=>setShowSettings(false)}>
-                <ThemeSettings onClose={()=>setShowSettings(false)}
-                  dark={dark} toggleDark={toggleDark}
-                  accentId={accentId} setAccent={setAccent}
-                  accounts={accounts} activeAccountId={activeAccountId}
-                  switchAccount={switchAccount}
-                  removeAccount={removeAccount} addAccount={addAccount}
-                  theme={t} isMobile={isMobile}/>
-              </FocusTrap>
-            )}
-  
-            {folderPicker&&<FolderPicker onSelect={handleMove} onClose={()=>setFolderPicker(null)} currentFolder={activeFolder} t={t}/>}
-            {confirm&&<ConfirmDialog {...confirm} onCancel={()=>setConfirm(null)}/>}
-  
-            {/* Fix #5 — keyboard help overlay */}
-            {showHelp&&<KeyboardHelpOverlay onClose={()=>setShowHelp(false)} t={t}/>}
-  
-            <ToastStack toasts={toasts} onDismiss={dismissToast} onUndo={handleUndo}/>
-          </div>
+    
+          )}
+    
+          {/* ========================= */}
+          {/* GLOBAL MODALS (ALWAYS OUTSIDE) */}
+          {/* ========================= */}
+          {showSettings && (
+            <FocusTrap onEscape={()=>setShowSettings(false)}>
+              <ThemeSettings
+                onClose={()=>setShowSettings(false)}
+                dark={dark}
+                toggleDark={toggleDark}
+                accentId={accentId}
+                setAccent={setAccent}
+                accounts={accounts}
+                activeAccountId={activeAccountId}
+                switchAccount={switchAccount}
+                removeAccount={removeAccount}
+                addAccount={addAccount}
+                theme={t}
+                isMobile={isMobile}
+              />
+            </FocusTrap>
+          )}
+    
+          {folderPicker && (
+            <FolderPicker
+              onSelect={handleMove}
+              onClose={()=>setFolderPicker(null)}
+              currentFolder={activeFolder}
+              t={t}
+            />
+          )}
+    
+          {confirm && (
+            <ConfirmDialog {...confirm} onCancel={()=>setConfirm(null)} />
+          )}
+    
+          {showHelp && (
+            <KeyboardHelpOverlay onClose={()=>setShowHelp(false)} t={t} />
+          )}
+    
+          <ToastStack toasts={toasts} onDismiss={dismissToast} onUndo={handleUndo} />
+    
         </ThemeCtx.Provider>
       </ErrorBoundary>
     );

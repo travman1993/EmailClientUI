@@ -223,12 +223,16 @@ export default function ThemeSettings({
   isMobile,
 }) {
   const [tab, setTab] = useState("appearance"); // appearance | accounts | about
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(accounts.length === 0);
   const [confirmRemove, setConfirmRemove] = useState(null); // account id to confirm
 
   const handleAddAccount = (config) => {
-    addAccount(config);
+    const newAccount = addAccount(config);
+
+    switchAccount(newAccount.id);
+
     setShowAddForm(false);
+    onClose();
   };
 
   const TabBtn = ({ id, label, icon }) => (
